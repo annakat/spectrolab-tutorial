@@ -1,0 +1,173 @@
+---
+title: "Introduction to spectral processing with 'spectrolab'"
+author: "Anna Schweiger"
+output:
+  # pdf_document: default
+  html_document: default
+---
+
+## Install spectrolab
+
+```{r, eval=FALSE}
+install.packages("spectrolab")
+```
+
+```{r, message=F}
+library("spectrolab")
+```
+
+## The spectra class
+
+`spectrolab` defines a new S3 class called `spectra` that holds all of the different components of a spectral data.
+
+Without diving too much into its implementation, a `spectra` object holds the important information needed for most spectral data sets: reflectance, wavelengths, filen ames, metadata etc. The class has a bunch of requirements in terms of both format and values. 
+
+## Read and inspect data
+Our spectral data were measured with an instrument called ASD.
+```{r, message=F}
+spec <- read_spectra("./example_data/", format="asd")
+
+```
+
+`spectrolab` can also read other file formats, but let's not worry about that for now. You can always look at `spectrolab's` help for more information. 
+
+```{r, eval=F}
+help(read_spectra)
+```
+
+You can see what a `spectra` object contains by typing
+
+```{r}
+spec
+```
+Our `spectra` object contains 9 samples, > 2000 bands, and no metadata. To access the individual components try
+
+```{r,eval=F}
+bands(spec)
+tail(bands(spec))
+
+names(spec)
+meta(spec)
+```
+
+Let's plot our spectra. It's as simple as
+
+```{r}
+plot(spec)
+```
+
+You can add spectral regions and quantiles to the plot. How? Try to figure it out yourself. Hint: you can search the help page, or type _**comma**_ after _**spectrolab**_ followed by the  _**TAB**_ key
+
+```{r}
+help(package="spectrolab")
+```
+
+Try also `spectrolab's` interactive plotting option
+
+```{r,eval=FALSE}
+plot_interactive(spec)
+
+```
+If you'd like to remove a spectrum for some reason, click on it and note the number.  Let's create a new `spectra` object and remove the spectrum with the highest reflectance
+
+```{r}
+spec2 <- spec[-4]
+
+# standard plotting commands can be added
+plot(spec2, col=rainbow(n=length(spec2)), lwd=2)
+```
+
+## Adding metadata 
+
+Easy! How about adding some metadata?  One option is to edit the `spectra` object.
+```{r}
+meta(spec2, label = "some_cool_data") <- c(3,7,4,2,6,9,8,7)
+```
+Adding a dummy N content
+```{r}
+n_content <- rnorm(n = nrow(spec2), mean = 2, sd = 0.5)
+meta(spec2, label = "N_percent") = n_content
+# and check 
+meta(spec2)
+```
+Looks good! You can also import a metadata table and merge it to your spectral data. 
+
+```{r}
+meta_csv <- read.csv("./example_data/metadata_spec2.csv")
+meta(spec2) <- meta_csv[,c(2,3)]
+
+meta(spec2)
+```
+Awesome! You can query your `spectra` object and metadata by name or index
+```{r}
+meta(spec2, sample=c(1,3))
+
+names(spec2)
+meta(spec2,sample="103_SALHU00000")
+```
+Bonus question: What's the difference in the output of these two functions
+```{r,eval=FALSE}
+meta(spec2,label = 2)
+meta(spec2,label = 2, simplify = TRUE)
+```
+
+## Basic calculations
+Sometimes you might want to calculate a mean spectrum, or other things
+
+```{r}
+spec_mean <- mean(spec2)
+
+plot(spec2)
+plot(spec_mean, col="red", lwd=3, add=T)
+plot_quantile(spec2,total_prob = 0.75,add=T) 
+```
+Conveniently, this calculates also the mean of your metadata
+```{r}
+meta(spec_mean)
+```
+What about minimum and maximum?
+```{r,eval=FALSE}
+spec_min <- min(spec2) 
+meta(spec_min)
+```
+This does not work because `spectrolab` does not know if you want a minimum spectrum, a minimum reflectance value, a minimum values of a specific metadata element, etc.  But there are better ways to calculate each of those... can you figure them out?
+
+## Some post-processing options
+You might want to cut off noisy regions at the beginning and end of the spectrum. Simple sub-setting does the trick. Use `plot_interactive` to decide which regions are "good"
+
+```{r}
+spec_trim <- spec2[ , bands(spec2, 500, 2400)]
+```
+You can also re-sample wavelengths, e.g. to reduce the amount of data
+```{r}
+spec_sub <- resample(spec2, new_bands = seq(400, 2400, 10))
+```
+Or select specific samples
+```{r}
+spec3 <- spec2[meta(spec2,"N_percent")>2,]
+meta(spec3, "N_percent")
+
+spec4 <- spec2[grepl("SPITO",names(spec2))]
+spec4
+```
+
+## Export data
+You can of course export and re-import your data. Just be careful how `spectrolab` imports tabular data. You will need to specify names, bands and metadata
+
+```{r}
+write.csv(spec_sub, "./example_data/export_spectra.csv", row.names = F)
+
+spec_csv <- read.csv("./example_data/export_spectra.csv")
+```
+`spectrolab's` bands names need to be numeric. So we need to modify our column names first
+
+```{r}
+names(spec_csv) <- gsub("X","",names(spec_csv))
+spec5 <- as_spectra(spec_csv,name_idx = 1, meta_idxs = 2:5)
+
+plot(spec5, col=rainbow(n=length(spec5)), lwd=6)
+```
+**Beautiful!!**
+
+### Wishing you lots of fun with all your spectral endevours! 
+
