@@ -1,3 +1,3 @@
 # Welcome to the spectrolab intro tutorial!
 
-Download this repository to get started
+Please save the "download" folder to get started
