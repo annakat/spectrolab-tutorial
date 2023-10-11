@@ -2,7 +2,7 @@
 title: "Introduction to spectral processing with 'spectrolab'"
 author: "Anna Schweiger"
 output:
-  pdf_document: default
+  # pdf_document: default
   html_document: default
 ---
 
@@ -25,7 +25,7 @@ Without diving too much into its implementation, a `spectra` object holds the im
 ## Read and inspect data
 Our spectral data were measured with an instrument called ASD.
 ```{r, message=F}
-spec <- read_spectra("./download/example_data/", format="asd")
+spec <- read_spectra("./example_data/", format="asd")
 
 ```
 
@@ -93,7 +93,7 @@ meta(spec2)
 Looks good! You can also import a metadata table and merge it to your spectral data. 
 
 ```{r}
-meta_csv <- read.csv("./example_data/metadata_spec2.csv")
+meta_csv <- read.csv("./example_data/metadata.csv")
 meta(spec2) <- meta_csv[,c(2,3)]
 
 meta(spec2)
@@ -154,9 +154,11 @@ spec4
 ## Export data
 You can of course export and re-import your data. Just be careful how `spectrolab` imports tabular data. You will need to specify names, bands and metadata
 
-```{r}
-write.csv(spec_sub, "./export_spec_sub.csv", row.names = F)
+```{r,eval=FALSE}
+write.csv(spec_sub, "./example_data/export_spec_sub.csv", row.names = F)
+```
 
+```{r}
 ### Data should be the same as
 spec_csv <- read.csv("./example_data/export_spectra.csv")
 ```
@@ -168,7 +170,7 @@ spec5 <- as_spectra(spec_csv,name_idx = 1, meta_idxs = 2:5)
 
 plot(spec5, col=rainbow(n=length(spec5)), lwd=6)
 ```
-**Beautiful!!**
+Beautiful!!
 
-### Wishing you lots of fun with all your spectral endevours! 
+# Wishing you lots of fun with all your spectral endevours! 
 
