@@ -1,0 +1,34 @@
+---
+title: "Compare high and low spectral resolution data"
+author: "Anna K Schweiger"
+output:
+  pdf_document: default
+  # html_document: default
+---
+
+## Install spectrolab
+
+```{r, eval=FALSE, message=F}
+install.packages("spectrolab")
+```
+
+```{r, message=F}
+library("spectrolab")
+```
+
+## Read high resolution spectra
+
+```{r,message=F}
+hires <- read_spectra("./example_data/","asd")
+plot(hires, col=rainbow(length(hires)))
+```
+
+```{r}
+xx <- read.csv("./example_data/LS8_spectra.csv")
+names(xx) <- gsub("X","",names(xx))
+lowres <- as_spectra(x = xx,name_idx = 1)
+plot(lowres, col=rainbow(length(lowres)))
+
+```
+
+
